@@ -6,7 +6,7 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:30 by loris             #+#    #+#             */
-/*   Updated: 2023/01/19 21:14:52 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/03 11:13:37 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,11 +69,13 @@ int	main(int ac, char *av[])
 	int	time_to_eat;
 	int	time_to_sleep;
 	int number_of_times_each_philosopher_must_eat;
-	pthread_t p1;
-	thread_data *dataptr;
+			// trouver comment creer array de l'enum et de le mettre dans la struct memoire partage
+	// enum State { fork, eat, sleep, think, died};
+	struct timeval start, end;
+	gettimeofday(&start, NULL);
 
 	if (ac < 5 || ac > 6)
-	return (0);
+		return (0);
 	number_of_philosophers = ft_atoi(av[1]);
 	time_to_die = ft_atoi(av[2]);
 	time_to_eat = ft_atoi(av[3]);
@@ -81,9 +83,12 @@ int	main(int ac, char *av[])
 	if (ac == 6)
 		number_of_times_each_philosopher_must_eat = ft_atoi(av[5]);
 	else
-		number_of_times_each_philosopher_must_eat = 0;
+		number_of_times_each_philosopher_must_eat = -1;
 		
+			// creer un nombre variable de thread, lancer tous les threads em meme temps
 	// need to malloc the struct
+	pthread_t p1;
+	thread_data *dataptr;
 	dataptr = (thread_data *)malloc(sizeof(thread_data));
 	if (dataptr == NULL)
 		return (0);
@@ -98,6 +103,14 @@ int	main(int ac, char *av[])
 	printf("%i\n", time_to_eat);
 	printf("%i\n", time_to_sleep);
 	printf("%i\n", number_of_times_each_philosopher_must_eat);
+
+	// test gettime
+	gettimeofday(&end, NULL);
+	printf("%ld milliseconds\n", ((end.tv_sec * 1000 + end.tv_usec) - (start.tv_sec * 1000 + start.tv_usec)));
+	sleep(1);
+	gettimeofday(&end, NULL);
+	printf("%ld milliseconds\n", ((end.tv_sec * 1000 + end.tv_usec) - (start.tv_sec * 1000 + start.tv_usec)));
+		
 	// on peut faire communiquer les threads en leur donnant en argument la meme variable
 	if (pthread_create(&p1, NULL, &routine, (void *)dataptr))	// if(0), le if s'arrete
 		return (1);
