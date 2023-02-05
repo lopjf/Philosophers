@@ -6,7 +6,7 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:30 by loris             #+#    #+#             */
-/*   Updated: 2023/02/04 19:55:26 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/05 12:27:24 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,11 @@ int check_last_ate(thread_data *dataptr, int id)
 	last_ate = dataptr->info[id].last_ate;
 	gettime = dataptr->info[id].gettime;
 	gettimeofday(&gettime, NULL);
+	// printf("%ld\n", (gettime.tv_sec * 1000 + gettime.tv_usec / 1000));
+	// printf("%ld\n", (last_ate.tv_sec * 1000 + last_ate.tv_usec / 1000));
+	// printf("%ld\n", ((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - (last_ate.tv_sec * 1000 + last_ate.tv_usec / 1000)));
+	// printf("%i\n", dataptr->time_to_die);
+	// sleep(2);
 	if ((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - (last_ate.tv_sec * 1000 + last_ate.tv_usec / 1000) >= dataptr->time_to_die)
 		return (0);
 	return (1);
@@ -106,16 +111,16 @@ void *routine(void *ptr)
 	{
 		if (dataptr->info[id].fork == 0 && dataptr->info[id_up].fork == 0)
 		{
-			// if (check_if_dead(dataptr) == 0)
-			// 	break;
+			if (check_if_dead(dataptr) == 0)
+				break;
 			pthread_mutex_lock(&dataptr->mutex);
 			dataptr->info[id].fork = 1;
 			give_timestamp(dataptr, id, 0);
 			dataptr->info[id_up].fork = 1;
 			give_timestamp(dataptr, id, 0);
 			pthread_mutex_unlock(&dataptr->mutex);
-			// if (check_if_dead(dataptr) == 0)
-			// 	break;
+			if (check_if_dead(dataptr) == 0)
+				break;
 			give_timestamp(dataptr, id, 1);
 			usleep(dataptr->time_to_eat * 1000);
 			pthread_mutex_lock(&dataptr->mutex);
@@ -124,12 +129,12 @@ void *routine(void *ptr)
 			pthread_mutex_unlock(&dataptr->mutex);
 			gettimeofday(&dataptr->info[id].last_ate, NULL);
 			dataptr->info[id].eat_counter++;
-			// if (check_if_dead(dataptr) == 0)
-			// 	break;
+			if (check_if_dead(dataptr) == 0)
+				break;
 			give_timestamp(dataptr, id, 2);
 			usleep(dataptr->time_to_sleep * 1000);
-			// if (check_if_dead(dataptr) == 0)
-			// 	break;
+			if (check_if_dead(dataptr) == 0)
+				break;
 			give_timestamp(dataptr, id, 3);
 		}
 		if (dataptr->info[id].eat_counter == dataptr->number_of_times_each_philosopher_must_eat)
@@ -173,22 +178,22 @@ long long	ft_atoi(const char *nptr)
 
 void initialise_states(thread_data *dataptr)
 {
-	int i;
+	int id;
 
-	i = 0;
-	while (i < dataptr->number_of_philosophers)
+	id = 0;
+	while (id < dataptr->number_of_philosophers)
 	{
-		dataptr->info[i].philosopher_state = on;
-		dataptr->info[i].fork = 0;
-		dataptr->info[i].eat_counter = 0;
-		i++;
+		dataptr->info[id].philosopher_state = on;
+		dataptr->info[id].fork = 0;
+		dataptr->info[id].eat_counter = 0;
+		gettimeofday(&dataptr->info[id].last_ate, NULL);
+		id++;
 	}
 	dataptr->philosopher_id = 0;
 }
 
 int launch_philosophers(thread_data *dataptr)
 {
-	
 	int i;
 
 	i = 0;
@@ -243,8 +248,8 @@ int	main(int ac, char *av[])
 	// sleep(1);
 	// gettimeofday(&gettime, NULL);
 	// printf("%ld milliseconds\n", ((gettime.tv_sec * 1000 + gettime.tv_usec) - (dataptr->start.tv_sec * 1000 + dataptr->start.tv_usec)));
-	for (int i = 0; i < dataptr->number_of_philosophers; i++)
-		printf("%i has eaten %i times\n", i, dataptr->info[i].eat_counter);
+	// for (int i = 0; i < dataptr->number_of_philosophers; i++)
+	// 	printf("%i has eaten %i times\n", i, dataptr->info[i].eat_counter);
 
 	pthread_mutex_destroy(&dataptr->mutex);
 	free(dataptr);
