@@ -6,7 +6,7 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:30 by loris             #+#    #+#             */
-/*   Updated: 2023/02/06 12:43:51 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/06 14:51:49 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,11 +58,12 @@ void give_timestamp(thread_data *dataptr, int id, int reason)
 		printf("%ld %i died\n", ((gettime.tv_sec * 1000 +
 		gettime.tv_usec / 1000) - (dataptr->start.tv_sec * 1000 +
 		dataptr->start.tv_usec / 1000)), id);
+		// not sure if we can use exit()
 		exit(0);
 	}
 }
 
-int check_last_ate(thread_data *dataptr, int id)
+int check_if_starving(thread_data *dataptr, int id)
 {
 	struct timeval last_ate;
 	struct timeval gettime;
@@ -89,10 +90,53 @@ int check_if_dead(thread_data *dataptr)
 	return (1);
 }
 
-// int grab_fork_then_eat(thread_data *dataptr)
-// {
+int ready_to_eat(thread_data *dataptr, int id)
+{
+	struct timeval last_ate;
+	struct timeval gettime;
 	
-// }
+	last_ate = dataptr->info[id].last_ate;
+	gettime = dataptr->info[id].gettime;
+	gettimeofday(&gettime, NULL);
+	if ((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - (last_ate.tv_sec * 1000 + last_ate.tv_usec / 1000) >= dataptr->time_to_die - 10)
+		return (1);
+	if (dataptr->info[id].eat_counter == 0)
+		return (1);
+	return (0);
+}
+
+int grab_fork_then_eat(thread_data *dataptr, int id, int id_up)
+{
+	if (check_if_dead(dataptr) == 0)
+		return (0);
+	pthread_mutex_lock(&dataptr->mutex);
+	dataptr->info[id].fork = 1;
+	give_timestamp(dataptr, id, 0);
+	if (dataptr->info[id_up].fork == 1)
+	{
+		dataptr->info[id].philosopher_state = dead;
+		give_timestamp(dataptr, id, 4);
+		return(0);
+	}
+	dataptr->info[id_up].fork = 1;
+	give_timestamp(dataptr, id, 0);
+	pthread_mutex_unlock(&dataptr->mutex);
+	gettimeofday(&dataptr->info[id].last_ate, NULL);
+	if (check_if_dead(dataptr) == 0)
+		return (0);
+	give_timestamp(dataptr, id, 1);
+	usleep(dataptr->time_to_eat * 1000);
+	pthread_mutex_lock(&dataptr->mutex);
+	dataptr->info[id].fork = 0;
+	dataptr->info[id_up].fork = 0;
+	pthread_mutex_unlock(&dataptr->mutex);
+	dataptr->info[id].eat_counter++;
+	if (check_if_dead(dataptr) == 0)
+		return (0);
+	return (1);
+	// make them eat only before they died from starvation (avoid double eating and eating instead of others)
+	// first make the first half eating normally, then apply this rule
+}
 
 void *routine(void *ptr)
 {
@@ -109,43 +153,10 @@ void *routine(void *ptr)
 		id_up = id + 1;
 	while (dataptr->info[id].philosopher_state == on)
 	{
-		if (dataptr->info[id].fork == 0 && dataptr->info[id_up].fork == 0 && dataptr->info[id].philosopher_state == on)
+		if (dataptr->info[id].fork == 0 && dataptr->info[id_up].fork == 0 && ready_to_eat(dataptr, id) == 1) // && dataptr->info[id].philosopher_state == on
 		{
-			if (check_if_dead(dataptr) == 0)
-				break;
-			pthread_mutex_lock(&dataptr->mutex);
-			if (dataptr->info[id].fork == 0 && dataptr->info[id_up].fork == 0 && dataptr->info[id].philosopher_state == on)
-			{
-				dataptr->info[id].fork = 1;
-				give_timestamp(dataptr, id, 0);
-			// pthread_mutex_unlock(&dataptr->mutex);
-			// while (dataptr->info[id_up].fork == 1)
-			// {
-			// 	// as long as the fork is used, check if philosopher time is running out, if runned out, mark him as dead, otherwise, keep up going
-			// 	if (check_last_ate(dataptr, id) == 0)
-			// 	{
-			// 		dataptr->info[id].philosopher_state = dead;
-			// 		give_timestamp(dataptr, id, 4);
-			// 		return (0);
-			// 	}
-			// }
-			// pthread_mutex_lock(&dataptr->mutex);
-				dataptr->info[id_up].fork = 1;
-				give_timestamp(dataptr, id, 0);
-			}
-			pthread_mutex_unlock(&dataptr->mutex);
-			if (check_if_dead(dataptr) == 0)
-				break;
-			gettimeofday(&dataptr->info[id].last_ate, NULL);
-			give_timestamp(dataptr, id, 1);
-			usleep(dataptr->time_to_eat * 1000);
-			pthread_mutex_lock(&dataptr->mutex);
-			dataptr->info[id].fork = 0;
-			dataptr->info[id_up].fork = 0;
-			pthread_mutex_unlock(&dataptr->mutex);
-			dataptr->info[id].eat_counter++;
-			if (check_if_dead(dataptr) == 0)
-				break;
+			if (grab_fork_then_eat(dataptr, id, id_up) == 0)
+				return(0);
 			give_timestamp(dataptr, id, 2);
 			usleep(dataptr->time_to_sleep * 1000);
 			if (check_if_dead(dataptr) == 0)
@@ -154,7 +165,7 @@ void *routine(void *ptr)
 		}
 		if (dataptr->info[id].eat_counter == dataptr->number_of_times_each_philosopher_must_eat)
 			dataptr->info[id].philosopher_state = off;
-		if (check_last_ate(dataptr, id) == 0)
+		if (check_if_starving(dataptr, id) == 0)
 		{
 			dataptr->info[id].philosopher_state = dead;
 			give_timestamp(dataptr, id, 4);
