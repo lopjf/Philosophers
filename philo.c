@@ -6,7 +6,7 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:30 by loris             #+#    #+#             */
-/*   Updated: 2023/02/05 14:27:38 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/06 12:43:51 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ void give_timestamp(thread_data *dataptr, int id, int reason)
 		printf("%ld %i died\n", ((gettime.tv_sec * 1000 +
 		gettime.tv_usec / 1000) - (dataptr->start.tv_sec * 1000 +
 		dataptr->start.tv_usec / 1000)), id);
+		exit(0);
 	}
 }
 
@@ -88,6 +89,11 @@ int check_if_dead(thread_data *dataptr)
 	return (1);
 }
 
+// int grab_fork_then_eat(thread_data *dataptr)
+// {
+	
+// }
+
 void *routine(void *ptr)
 {
 	int id;
@@ -108,16 +114,25 @@ void *routine(void *ptr)
 			if (check_if_dead(dataptr) == 0)
 				break;
 			pthread_mutex_lock(&dataptr->mutex);
-			dataptr->info[id].fork = 1;
-			give_timestamp(dataptr, id, 0);
-			if (dataptr->info[id_up].fork == 1)
+			if (dataptr->info[id].fork == 0 && dataptr->info[id_up].fork == 0 && dataptr->info[id].philosopher_state == on)
 			{
-				dataptr->info[id].philosopher_state = dead;
-				give_timestamp(dataptr, id, 4);
-				break;
+				dataptr->info[id].fork = 1;
+				give_timestamp(dataptr, id, 0);
+			// pthread_mutex_unlock(&dataptr->mutex);
+			// while (dataptr->info[id_up].fork == 1)
+			// {
+			// 	// as long as the fork is used, check if philosopher time is running out, if runned out, mark him as dead, otherwise, keep up going
+			// 	if (check_last_ate(dataptr, id) == 0)
+			// 	{
+			// 		dataptr->info[id].philosopher_state = dead;
+			// 		give_timestamp(dataptr, id, 4);
+			// 		return (0);
+			// 	}
+			// }
+			// pthread_mutex_lock(&dataptr->mutex);
+				dataptr->info[id_up].fork = 1;
+				give_timestamp(dataptr, id, 0);
 			}
-			dataptr->info[id_up].fork = 1;
-			give_timestamp(dataptr, id, 0);
 			pthread_mutex_unlock(&dataptr->mutex);
 			if (check_if_dead(dataptr) == 0)
 				break;
@@ -170,7 +185,14 @@ long long	ft_atoi(const char *nptr)
 		nbr = (nbr * 10) + nptr[i] - 48;
 		i++;
 	}
-	return (nbr * minus);
+	if (nptr[i] == '\0')
+	{
+		if (nbr > 2147483647 || nbr * minus < 0)
+			return (-1);
+		else
+			return (nbr * minus);
+	}
+	return (-1);
 }
 
 void initialise_states(thread_data *dataptr)
@@ -212,16 +234,21 @@ int launch_philosophers(thread_data *dataptr)
 	return (0);
 }
 
-int check_if_valid_parameters(thread_data *dataptr)
+int check_if_valid_parameters(thread_data *dataptr, int ac)
 {
+	// printf("number_of_philosophers: %i\n", dataptr->number_of_philosophers);
+	// printf("time_to_die: %i\n", dataptr->time_to_die);
+	// printf("time_to_eat: %i\n", dataptr->time_to_eat);
+	// printf("time_to_sleep: %i\n", dataptr->time_to_sleep);
+	// printf("number_of_times_each_philosopher_must_eat: %i\n", dataptr->number_of_times_each_philosopher_must_eat);
+	
 	if (dataptr->number_of_philosophers < 1 || dataptr->time_to_die < 0)
 		return (0);
 	if (dataptr->time_to_eat < 0 || dataptr->time_to_sleep < 0)
 		return (0);
-	if (dataptr->number_of_times_each_philosopher_must_eat < 0)
+	if (ac == 6 && dataptr->number_of_times_each_philosopher_must_eat < 0)
 		return (0);
 	return (1);
-	// gerer ces problemes dans ATOI
 }
 
 int	main(int ac, char *av[])
@@ -246,13 +273,14 @@ int	main(int ac, char *av[])
 	if (ac == 6)
 		dataptr->number_of_times_each_philosopher_must_eat = ft_atoi(av[5]);
 	else
-	// par sur de la valeur a donner ici
-		dataptr->number_of_times_each_philosopher_must_eat = 0;
+		dataptr->number_of_times_each_philosopher_must_eat = -1;
 
-	// chose a gerer dans ATOI
-	if (check_if_valid_parameters(dataptr) == 1)
+	if (check_if_valid_parameters(dataptr, ac) == 1)
 		launch_philosophers(dataptr);
 
+	// for (int i = 0; i < dataptr->number_of_philosophers; i++)
+	// 	printf("%i has eaten %i times\n", i, dataptr->info[i].eat_counter);
+		
 	pthread_mutex_destroy(&dataptr->mutex);
 	free(dataptr);
 	return (0);
