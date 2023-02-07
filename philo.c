@@ -6,7 +6,7 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:30 by loris             #+#    #+#             */
-/*   Updated: 2023/02/07 09:46:06 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/07 10:07:54 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 #include "philo.h"
 
 // I think the Makefile relink
-void	give_timestamp(thread_data *dataptr, int id, int reason)
+void	give_timestamp(t_thread_data *dataptr, int id, int reason)
 {
 	struct timeval	gettime;
 
@@ -63,7 +63,7 @@ void	give_timestamp(thread_data *dataptr, int id, int reason)
 	}
 }
 
-int	check_if_starving(thread_data *dataptr, int id)
+int	check_if_starving(t_thread_data *dataptr, int id)
 {
 	struct timeval	last_ate;
 	struct timeval	gettime;
@@ -77,7 +77,7 @@ int	check_if_starving(thread_data *dataptr, int id)
 	return (1);
 }
 
-int	check_if_dead(thread_data *dataptr)
+int	check_if_dead(t_thread_data *dataptr)
 {
 	int	id;
 
@@ -91,7 +91,7 @@ int	check_if_dead(thread_data *dataptr)
 	return (1);
 }
 
-int	ready_to_eat(thread_data *dataptr, int id)
+int	ready_to_eat(t_thread_data *dataptr, int id)
 {
 	struct timeval	last_ate;
 	struct timeval	gettime;
@@ -107,7 +107,7 @@ int	ready_to_eat(thread_data *dataptr, int id)
 	return (0);
 }
 
-int	grab_fork_then_eat(thread_data *dataptr, int id, int id_up)
+int	grab_fork_then_eat(t_thread_data *dataptr, int id, int id_up)
 {
 	if (check_if_dead(dataptr) == 0)
 		return (0);
@@ -142,7 +142,7 @@ void	*routine(void *ptr)
 {
 	int			id;
 	int			id_up;
-	thread_data	*dataptr;
+	t_thread_data	*dataptr;
 
 	dataptr = ptr;
 	id = dataptr->philosopher_id;
@@ -208,7 +208,7 @@ long long	ft_atoi(const char *nptr)
 	return (-1);
 }
 
-void	initialise_states(thread_data *dataptr)
+void	initialise_states(t_thread_data *dataptr)
 {
 	int	id;
 
@@ -224,7 +224,7 @@ void	initialise_states(thread_data *dataptr)
 	dataptr->philosopher_id = 0;
 }
 
-int	launch_philosophers(thread_data *dataptr)
+int	launch_philosophers(t_thread_data *dataptr)
 {
 	int			i;
 	pthread_t	philosopher[dataptr->number_of_philosophers];
@@ -247,7 +247,7 @@ int	launch_philosophers(thread_data *dataptr)
 	return (0);
 }
 
-int	check_if_valid_parameters(thread_data *dataptr, int ac)
+int	check_if_valid_parameters(t_thread_data *dataptr, int ac)
 {
 	if (dataptr->number_of_philosophers < 1 || dataptr->time_to_die < 0)
 		return (0);
@@ -260,9 +260,9 @@ int	check_if_valid_parameters(thread_data *dataptr, int ac)
 
 int	main(int ac, char *av[])
 {
-	thread_data	*dataptr;
+	t_thread_data	*dataptr;
 
-	dataptr = (thread_data *)malloc(sizeof(thread_data));
+	dataptr = (t_thread_data *)malloc(sizeof(t_thread_data));
 	if (dataptr == NULL)
 		return (0);
 	gettimeofday(&dataptr->start, NULL);
