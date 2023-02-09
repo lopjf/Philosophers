@@ -6,19 +6,9 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:30 by loris             #+#    #+#             */
-/*   Updated: 2023/02/07 10:07:54 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/09 09:32:56 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-// Allowed external funcs:
-// memset, printf, malloc, free, write,
-// usleep, gettimeofday, pthread_create,
-// pthread_detach, pthread_join, pthread_mutex_init,
-// pthread_mutex_destroy, pthread_mutex_lock,
-// pthread_mutex_unlock
-
-// one of the biggest differences in between thread and processes:
-// threads are sharing memory, proceses are not
 
 #include "philo.h"
 
@@ -140,8 +130,8 @@ int	grab_fork_then_eat(t_thread_data *dataptr, int id, int id_up)
 
 void	*routine(void *ptr)
 {
-	int			id;
-	int			id_up;
+	int				id;
+	int				id_up;
 	t_thread_data	*dataptr;
 
 	dataptr = ptr;

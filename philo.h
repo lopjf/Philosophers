@@ -6,7 +6,7 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:33 by loris             #+#    #+#             */
-/*   Updated: 2023/02/07 10:07:56 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/09 09:33:20 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,16 +20,17 @@
 # include <pthread.h>
 # include <sys/time.h>
 
+typedef enum e_state
+{
+	on,
+	off,
+	dead
+}				t_state;
+
 typedef struct s_philo_struct
 {
+	t_state			philosopher_state;
 	int				fork;
-	enum			e_state	
-	{
-		on,
-		off,
-		dead
-	};
-	e_state			philosopher_state;
 	int				eat_counter;
 	struct timeval	last_ate;
 	struct timeval	gettime;
