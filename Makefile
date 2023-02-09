@@ -6,13 +6,13 @@
 #    By: loris <loris@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/27 15:10:47 by loris             #+#    #+#              #
-#    Updated: 2023/02/06 14:50:53 by loris            ###   ########.fr        #
+#    Updated: 2023/02/09 10:09:08 by loris            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = philo.a
 
-SRCS = philo.c
+SRCS = philo.c utils_main.c utils_routine.c
 
 OBJS = $(SRCS:.c=.o)
 

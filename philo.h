@@ -6,7 +6,7 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:33 by loris             #+#    #+#             */
-/*   Updated: 2023/02/09 09:33:20 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/09 11:19:10 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,11 +42,17 @@ typedef struct s_data_struct
 	int				time_to_die;
 	int				time_to_eat;
 	int				time_to_sleep;
-	int				number_of_times_each_philosopher_must_eat;
+	int				nb_of_times_each_philosopher_must_eat;
 	pthread_mutex_t	mutex;
 	struct timeval	start;
 	int				philosopher_id;
 	t_thread_philo	info[];
 }	t_thread_data;
+
+void		give_timestamp(t_thread_data *dataptr, int id, int reason);
+int			check_if_starving(t_thread_data *dataptr, int id);
+int			check_if_dead(t_thread_data *dataptr);
+int			ready_to_eat(t_thread_data *dataptr, int id);
+long long	ft_atoi(const char *nptr, int i, long long nbr);
 
 #endif

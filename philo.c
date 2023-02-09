@@ -6,96 +6,13 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:30 by loris             #+#    #+#             */
-/*   Updated: 2023/02/09 09:32:56 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/09 11:31:27 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
 // I think the Makefile relink
-void	give_timestamp(t_thread_data *dataptr, int id, int reason)
-{
-	struct timeval	gettime;
-
-	gettime = dataptr->info[id].gettime;
-	gettimeofday(&gettime, NULL);
-	if (reason == 0)
-	{
-		printf("%ld %i has taken a fork\n", \
-		((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - \
-		(dataptr->start.tv_sec * 1000 + dataptr->start.tv_usec / 1000)), id);
-	}
-	if (reason == 1)
-	{
-		printf("%ld %i is eating\n", \
-		((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - \
-		(dataptr->start.tv_sec * 1000 + dataptr->start.tv_usec / 1000)), id);
-	}
-	if (reason == 2)
-	{
-		printf("%ld %i is sleeping\n", \
-		((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - \
-		(dataptr->start.tv_sec * 1000 + dataptr->start.tv_usec / 1000)), id);
-	}
-	if (reason == 3)
-	{
-		printf("%ld %i is thinking\n", \
-		((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - \
-		(dataptr->start.tv_sec * 1000 + dataptr->start.tv_usec / 1000)), id);
-	}
-	if (reason == 4)
-	{
-		printf("%ld %i died\n", \
-		((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - \
-		(dataptr->start.tv_sec * 1000 + dataptr->start.tv_usec / 1000)), id);
-		// not sure if we can use exit()
-		exit(0);
-	}
-}
-
-int	check_if_starving(t_thread_data *dataptr, int id)
-{
-	struct timeval	last_ate;
-	struct timeval	gettime;
-
-	last_ate = dataptr->info[id].last_ate;
-	gettime = dataptr->info[id].gettime;
-	gettimeofday(&gettime, NULL);
-	if ((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - \
-	(last_ate.tv_sec * 1000 + last_ate.tv_usec / 1000) >= dataptr->time_to_die)
-		return (0);
-	return (1);
-}
-
-int	check_if_dead(t_thread_data *dataptr)
-{
-	int	id;
-
-	id = 0;
-	while (id < dataptr->number_of_philosophers)
-	{
-		if (dataptr->info[id].philosopher_state == dead)
-			return (0);
-		id++;
-	}
-	return (1);
-}
-
-int	ready_to_eat(t_thread_data *dataptr, int id)
-{
-	struct timeval	last_ate;
-	struct timeval	gettime;
-
-	last_ate = dataptr->info[id].last_ate;
-	gettime = dataptr->info[id].gettime;
-	gettimeofday(&gettime, NULL);
-	if ((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - (last_ate.tv_sec \
-	* 1000 + last_ate.tv_usec / 1000) >= dataptr->time_to_die - 10)
-		return (1);
-	if (dataptr->info[id].eat_counter == 0)
-		return (1);
-	return (0);
-}
 
 int	grab_fork_then_eat(t_thread_data *dataptr, int id, int id_up)
 {
@@ -155,7 +72,7 @@ void	*routine(void *ptr)
 			give_timestamp(dataptr, id, 3);
 		}
 		if (dataptr->info[id].eat_counter == \
-		dataptr->number_of_times_each_philosopher_must_eat)
+		dataptr->nb_of_times_each_philosopher_must_eat)
 			dataptr->info[id].philosopher_state = off;
 		if (check_if_starving(dataptr, id) == 0)
 		{
@@ -164,38 +81,6 @@ void	*routine(void *ptr)
 		}
 	}
 	return (0);
-}
-
-long long	ft_atoi(const char *nptr)
-{
-	int			i;
-	long long	nbr;
-	int			minus;
-
-	i = 0;
-	nbr = 0;
-	minus = 1;
-	while (nptr[i] == ' ' || (nptr[i] >= 9 && nptr[i] <= 13))
-		i++;
-	if (nptr[i] == '-' || nptr[i] == '+')
-	{
-		if (nptr[i] == '-')
-			minus *= -1 ;
-		i++;
-	}
-	while (nptr[i] != '\0' && nptr[i] >= '0' && nptr[i] <= '9')
-	{
-		nbr = (nbr * 10) + nptr[i] - 48;
-		i++;
-	}
-	if (nptr[i] == '\0')
-	{
-		if (nbr > 2147483647 || nbr * minus < 0)
-			return (-1);
-		else
-			return (nbr * minus);
-	}
-	return (-1);
 }
 
 void	initialise_states(t_thread_data *dataptr)
@@ -217,9 +102,10 @@ void	initialise_states(t_thread_data *dataptr)
 int	launch_philosophers(t_thread_data *dataptr)
 {
 	int			i;
-	pthread_t	philosopher[dataptr->number_of_philosophers];
+	pthread_t	*philosopher;
 
 	i = 0;
+	philosopher = malloc(sizeof(pthread_t) * dataptr->number_of_philosophers);
 	initialise_states(dataptr);
 	while (i < dataptr->number_of_philosophers)
 	{
@@ -234,6 +120,7 @@ int	launch_philosophers(t_thread_data *dataptr)
 			return (2);
 		i++;
 	}
+	free(philosopher);
 	return (0);
 }
 
@@ -243,7 +130,7 @@ int	check_if_valid_parameters(t_thread_data *dataptr, int ac)
 		return (0);
 	if (dataptr->time_to_eat < 0 || dataptr->time_to_sleep < 0)
 		return (0);
-	if (ac == 6 && dataptr->number_of_times_each_philosopher_must_eat < 0)
+	if (ac == 6 && dataptr->nb_of_times_each_philosopher_must_eat < 0)
 		return (0);
 	return (1);
 }
@@ -252,26 +139,22 @@ int	main(int ac, char *av[])
 {
 	t_thread_data	*dataptr;
 
+	if (ac < 5 || ac > 6)
+		return (0);
 	dataptr = (t_thread_data *)malloc(sizeof(t_thread_data));
 	if (dataptr == NULL)
 		return (0);
 	gettimeofday(&dataptr->start, NULL);
 	if (pthread_mutex_init(&dataptr->mutex, NULL))
 		return (1);
-	if (ac < 5 || ac > 6)
-	{
-		pthread_mutex_destroy(&dataptr->mutex);
-		free(dataptr);
-		return (0);
-	}
-	dataptr->number_of_philosophers = ft_atoi(av[1]);
-	dataptr->time_to_die = ft_atoi(av[2]);
-	dataptr->time_to_eat = ft_atoi(av[3]);
-	dataptr->time_to_sleep = ft_atoi(av[4]);
+	dataptr->number_of_philosophers = ft_atoi(av[1], 0, 0);
+	dataptr->time_to_die = ft_atoi(av[2], 0, 0);
+	dataptr->time_to_eat = ft_atoi(av[3], 0, 0);
+	dataptr->time_to_sleep = ft_atoi(av[4], 0, 0);
 	if (ac == 6)
-		dataptr->number_of_times_each_philosopher_must_eat = ft_atoi(av[5]);
+		dataptr->nb_of_times_each_philosopher_must_eat = ft_atoi(av[5], 0, 0);
 	else
-		dataptr->number_of_times_each_philosopher_must_eat = -1;
+		dataptr->nb_of_times_each_philosopher_must_eat = -1;
 	if (check_if_valid_parameters(dataptr, ac) == 1)
 		launch_philosophers(dataptr);
 	pthread_mutex_destroy(&dataptr->mutex);
