@@ -6,73 +6,83 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/09 10:08:03 by loris             #+#    #+#             */
-/*   Updated: 2023/02/09 10:08:10 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/09 14:11:35 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	give_timestamp(t_thread_data *dataptr, int id, int reason)
+int	grab_fork_then_eat(t_thread_data *dataptr, int id, int id_up)
 {
-	struct timeval	gettime;
-	long			current_timestamp;
-
-	gettime = dataptr->info[id].gettime;
-	gettimeofday(&gettime, NULL);
-	current_timestamp = (gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - \
-	(dataptr->start.tv_sec * 1000 + dataptr->start.tv_usec / 1000);
-	if (reason == 0)
-		printf("%ld %i has taken a fork\n", current_timestamp, id);
-	if (reason == 1)
-		printf("%ld %i is eating\n", current_timestamp, id);
-	if (reason == 2)
-		printf("%ld %i is sleeping\n", current_timestamp, id);
-	if (reason == 3)
-		printf("%ld %i is thinking\n", current_timestamp, id);
-	if (reason == 4)
-		printf("%ld %i died\n", current_timestamp, id);
-}
-
-int	check_if_starving(t_thread_data *dataptr, int id)
-{
-	struct timeval	last_ate;
-	struct timeval	gettime;
-
-	last_ate = dataptr->info[id].last_ate;
-	gettime = dataptr->info[id].gettime;
-	gettimeofday(&gettime, NULL);
-	if ((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - \
-	(last_ate.tv_sec * 1000 + last_ate.tv_usec / 1000) >= dataptr->time_to_die)
+	if (check_if_dead(dataptr) == 0)
 		return (0);
+	pthread_mutex_lock(&dataptr->mutex);
+	dataptr->info[id].fork = 1;
+	give_timestamp(dataptr, id, 0);
+	if (dataptr->info[id_up].fork == 1)
+	{
+		dataptr->info[id].philosopher_state = dead;
+		give_timestamp(dataptr, id, 4);
+		return (0);
+	}
+	dataptr->info[id_up].fork = 1;
+	give_timestamp(dataptr, id, 0);
+	pthread_mutex_unlock(&dataptr->mutex);
+	gettimeofday(&dataptr->info[id].last_ate, NULL);
+	if (check_if_dead(dataptr) == 0)
+		return (0);
+	give_timestamp(dataptr, id, 1);
+	usleep(dataptr->time_to_eat * 1000);
+	pthread_mutex_lock(&dataptr->mutex);
+	dataptr->info[id].fork = 0;
+	dataptr->info[id_up].fork = 0;
+	pthread_mutex_unlock(&dataptr->mutex);
+	dataptr->info[id].eat_counter++;
 	return (1);
 }
 
-int	check_if_dead(t_thread_data *dataptr)
+int	routine_helper(t_thread_data *dataptr, int id, int id_up)
 {
-	int	id;
-
-	id = 0;
-	while (id < dataptr->number_of_philosophers)
+	if (dataptr->info[id].fork == 0 && dataptr->info[id_up].\
+		fork == 0 && ready_to_eat(dataptr, id) == 1)
 	{
-		if (dataptr->info[id].philosopher_state == dead)
+		if (grab_fork_then_eat(dataptr, id, id_up) == 0)
 			return (0);
-		id++;
+		if (check_if_dead(dataptr) == 0)
+			return (0);
+		give_timestamp(dataptr, id, 2);
+		usleep(dataptr->time_to_sleep * 1000);
+		if (check_if_dead(dataptr) == 0)
+			return (0);
+		give_timestamp(dataptr, id, 3);
+	}
+	if (dataptr->info[id].eat_counter == \
+	dataptr->nb_of_times_each_philosopher_must_eat)
+		dataptr->info[id].philosopher_state = off;
+	if (check_if_starving(dataptr, id) == 0)
+	{
+		dataptr->info[id].philosopher_state = dead;
+		give_timestamp(dataptr, id, 4);
 	}
 	return (1);
 }
 
-int	ready_to_eat(t_thread_data *dataptr, int id)
+void	*routine(void *ptr)
 {
-	struct timeval	last_ate;
-	struct timeval	gettime;
+	int				id;
+	int				id_up;
+	t_thread_data	*dataptr;
 
-	last_ate = dataptr->info[id].last_ate;
-	gettime = dataptr->info[id].gettime;
-	gettimeofday(&gettime, NULL);
-	if ((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - (last_ate.tv_sec \
-	* 1000 + last_ate.tv_usec / 1000) >= dataptr->time_to_die - 10)
-		return (1);
-	if (dataptr->info[id].eat_counter == 0)
-		return (1);
+	dataptr = ptr;
+	id = dataptr->philosopher_id;
+	dataptr->philosopher_id++;
+	id_up = id + 1;
+	if (id == dataptr->number_of_philosophers - 1)
+		id_up = 0;
+	while (dataptr->info[id].philosopher_state == on)
+	{
+		if (routine_helper(dataptr, id, id_up) == 0)
+			return (0);
+	}
 	return (0);
 }

@@ -6,13 +6,13 @@
 #    By: loris <loris@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/27 15:10:47 by loris             #+#    #+#              #
-#    Updated: 2023/02/09 10:09:08 by loris            ###   ########.fr        #
+#    Updated: 2023/02/09 14:16:18 by loris            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME = philo.a
+NAME = philo
 
-SRCS = philo.c utils_main.c utils_routine.c
+SRCS = philo.c utils.c utils_routine.c
 
 OBJS = $(SRCS:.c=.o)
 
@@ -29,7 +29,6 @@ all: $(NAME)
 $(NAME): $(OBJS)
 
 	$(CC) $(CFLAGS) -pthread $(OBJS) -fsanitize=address -o philo
-
 
 clean:
 	$(RM) $(NAME) $(OBJS)

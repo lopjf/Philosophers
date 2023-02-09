@@ -6,82 +6,11 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:30 by loris             #+#    #+#             */
-/*   Updated: 2023/02/09 11:31:27 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/09 14:16:24 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-// I think the Makefile relink
-
-int	grab_fork_then_eat(t_thread_data *dataptr, int id, int id_up)
-{
-	if (check_if_dead(dataptr) == 0)
-		return (0);
-	pthread_mutex_lock(&dataptr->mutex);
-	dataptr->info[id].fork = 1;
-	give_timestamp(dataptr, id, 0);
-	if (dataptr->info[id_up].fork == 1)
-	{
-		dataptr->info[id].philosopher_state = dead;
-		give_timestamp(dataptr, id, 4);
-		return (0);
-	}
-	dataptr->info[id_up].fork = 1;
-	give_timestamp(dataptr, id, 0);
-	pthread_mutex_unlock(&dataptr->mutex);
-	gettimeofday(&dataptr->info[id].last_ate, NULL);
-	if (check_if_dead(dataptr) == 0)
-		return (0);
-	give_timestamp(dataptr, id, 1);
-	usleep(dataptr->time_to_eat * 1000);
-	pthread_mutex_lock(&dataptr->mutex);
-	dataptr->info[id].fork = 0;
-	dataptr->info[id_up].fork = 0;
-	pthread_mutex_unlock(&dataptr->mutex);
-	dataptr->info[id].eat_counter++;
-	if (check_if_dead(dataptr) == 0)
-		return (0);
-	return (1);
-}
-
-void	*routine(void *ptr)
-{
-	int				id;
-	int				id_up;
-	t_thread_data	*dataptr;
-
-	dataptr = ptr;
-	id = dataptr->philosopher_id;
-	dataptr->philosopher_id++;
-	if (id == dataptr->number_of_philosophers - 1)
-		id_up = 0;
-	else
-		id_up = id + 1;
-	while (dataptr->info[id].philosopher_state == on)
-	{
-		if (dataptr->info[id].fork == 0 && dataptr->info[id_up].\
-		fork == 0 && ready_to_eat(dataptr, id) == 1)
-		{
-			if (grab_fork_then_eat(dataptr, id, id_up) == 0)
-				return (0);
-			give_timestamp(dataptr, id, 2);
-			usleep(dataptr->time_to_sleep * 1000);
-			if (check_if_dead(dataptr) == 0)
-				break ;
-			give_timestamp(dataptr, id, 3);
-		}
-		if (dataptr->info[id].eat_counter == \
-		dataptr->nb_of_times_each_philosopher_must_eat)
-			dataptr->info[id].philosopher_state = off;
-		if (check_if_starving(dataptr, id) == 0)
-		{
-			dataptr->info[id].philosopher_state = dead;
-			give_timestamp(dataptr, id, 4);
-		}
-	}
-	return (0);
-}
 
 void	initialise_states(t_thread_data *dataptr)
 {

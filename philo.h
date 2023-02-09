@@ -6,7 +6,7 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:33 by loris             #+#    #+#             */
-/*   Updated: 2023/02/09 11:19:10 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/09 14:12:02 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,5 +54,6 @@ int			check_if_starving(t_thread_data *dataptr, int id);
 int			check_if_dead(t_thread_data *dataptr);
 int			ready_to_eat(t_thread_data *dataptr, int id);
 long long	ft_atoi(const char *nptr, int i, long long nbr);
+void		*routine(void *ptr);
 
 #endif
