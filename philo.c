@@ -35,6 +35,8 @@ int	launch_philosophers(t_thread_data *dataptr)
 
 	i = 0;
 	philosopher = malloc(sizeof(pthread_t) * dataptr->number_of_philosophers);
+	if (!philosopher)
+		return (0);
 	initialise_states(dataptr);
 	while (i < dataptr->number_of_philosophers)
 	{
