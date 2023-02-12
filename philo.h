@@ -24,7 +24,6 @@ typedef enum e_state
 {
 	on,
 	off,
-	dead
 }				t_state;
 
 typedef struct s_philo_struct
@@ -46,6 +45,7 @@ typedef struct s_data_struct
 	pthread_mutex_t	mutex;
 	struct timeval	start;
 	int				philosopher_id;
+	int				dead;
 	t_thread_philo	info[];
 }	t_thread_data;
 

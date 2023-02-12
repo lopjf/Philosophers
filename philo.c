@@ -78,6 +78,8 @@ int	main(int ac, char *av[])
 	gettimeofday(&dataptr->start, NULL);
 	if (pthread_mutex_init(&dataptr->mutex, NULL))
 		return (1);
+	dataptr->philosopher_id = 0;
+	dataptr->dead = 0;
 	dataptr->number_of_philosophers = ft_atoi(av[1], 0, 0);
 	dataptr->time_to_die = ft_atoi(av[2], 0, 0);
 	dataptr->time_to_eat = ft_atoi(av[3], 0, 0);

@@ -74,33 +74,3 @@ int	check_if_starving(t_thread_data *dataptr, int id)
 		return (0);
 	return (1);
 }
-
-int	check_if_dead(t_thread_data *dataptr)
-{
-	int	id;
-
-	id = 0;
-	while (id < dataptr->number_of_philosophers)
-	{
-		if (dataptr->info[id].philosopher_state == dead)
-			return (0);
-		id++;
-	}
-	return (1);
-}
-
-int	ready_to_eat(t_thread_data *dataptr, int id)
-{
-	struct timeval	last_ate;
-	struct timeval	gettime;
-
-	last_ate = dataptr->info[id].last_ate;
-	gettime = dataptr->info[id].gettime;
-	gettimeofday(&gettime, NULL);
-	if ((gettime.tv_sec * 1000 + gettime.tv_usec / 1000) - (last_ate.tv_sec \
-	* 1000 + last_ate.tv_usec / 1000) >= dataptr->time_to_die - 10)
-		return (1);
-	if (dataptr->info[id].eat_counter == 0)
-		return (1);
-	return (0);
-}
