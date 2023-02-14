@@ -6,7 +6,7 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/09 10:08:03 by loris             #+#    #+#             */
-/*   Updated: 2023/02/09 14:11:35 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/14 10:08:59 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ int	routine_helper(t_thread_data *dataptr, int id, int id_up)
 		if (dataptr->dead == 1)
 			return (0);
 		give_timestamp(dataptr, id, 3);
+		usleep((dataptr->time_to_die - dataptr->time_to_eat - dataptr->time_to_sleep) * 1000 / 10);
 	}
 	if (dataptr->info[id].eat_counter == \
 	dataptr->nb_of_times_each_philosopher_must_eat)
