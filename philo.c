@@ -6,7 +6,7 @@
 /*   By: loris <loris@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/27 15:06:30 by loris             #+#    #+#             */
-/*   Updated: 2023/02/09 14:16:24 by loris            ###   ########.fr       */
+/*   Updated: 2023/02/14 09:40:45 by loris            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,11 +58,20 @@ int	launch_philosophers(t_thread_data *dataptr)
 int	check_if_valid_parameters(t_thread_data *dataptr, int ac)
 {
 	if (dataptr->number_of_philosophers < 1 || dataptr->time_to_die < 0)
+	{
+		printf("error: wrong parameter\n");
 		return (0);
+	}
 	if (dataptr->time_to_eat < 0 || dataptr->time_to_sleep < 0)
+	{
+		printf("error: wrong parameter\n");
 		return (0);
+	}
 	if (ac == 6 && dataptr->nb_of_times_each_philosopher_must_eat < 0)
+	{
+		printf("error: wrong parameter\n");
 		return (0);
+	}
 	return (1);
 }
 
